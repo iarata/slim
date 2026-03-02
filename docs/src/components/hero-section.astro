@@ -4,13 +4,19 @@ import CopyButton from './copy-button.astro';
 const installCmd = 'curl -sL https://slim.sh/install.sh | sh';
 ---
 
-<section class="py-11 text-left max-sm:py-7" id="install">
-  <div class="max-w-(--max-width) mx-auto px-(--padding-x) text-center">
+<section class="relative py-14 text-left max-sm:py-9 overflow-hidden" id="install">
+  <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,_#f3f1ff_0%,_transparent_60%)] pointer-events-none" aria-hidden="true"></div>
 
-    <h1 class="font-heading text-[42px] font-semibold leading-[1.15] tracking-[-0.03em] text-text max-sm:text-[28px]">
-      Develop locally with<br />.local & public domains
+  <div class="max-w-(--max-width) mx-auto px-(--padding-x) text-center relative">
+    <div class="inline-flex items-center gap-2 rounded-full border border-[#e5e3ff] bg-[#f3f2ff] px-3 py-1 text-[11.5px] font-medium text-primary mb-6">
+      <span class="size-1.5 rounded-full bg-primary"></span>
+      Open Source · Built with Go
+    </div>
+
+    <h1 class="font-heading text-[44px] font-semibold leading-[1.12] tracking-[-0.03em] text-text max-sm:text-[28px]">
+      Develop locally with<br /><span class="text-primary">.local</span> & public domains
     </h1>
-    <p class="text-[15px] leading-[1.6] text-text-secondary mt-6 mb-9 max-w-115 max-sm:text-sm mx-auto">
+    <p class="text-[15px] leading-[1.6] text-text-secondary mt-5 mb-9 max-w-115 max-sm:text-sm mx-auto">
       Turn <code class="bg-[#f5f5f5] px-1.5 py-0.5 rounded text-[13px] text-text">localhost:3000</code> into <code class="bg-[#f5f5f5] px-1.5 py-0.5 rounded text-[13px] text-text">https://app.local</code> with HTTPS, or get a public url without deployment.
     </p>
 
@@ -27,9 +33,15 @@ const installCmd = 'curl -sL https://slim.sh/install.sh | sh';
       >Internet Sharing</button>
     </div>
 
-    <div class="rounded-b-[10px] rounded-tr-[10px] bg-code-bg text-left overflow-hidden">
+    <div class="rounded-b-[10px] rounded-tr-[10px] bg-code-bg text-left overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.08)]">
+      <div class="flex gap-1.5 border-b border-[#1a1a1a] px-3.5 py-2.5">
+        <span class="size-2.5 rounded-full bg-[#ff5f57]"></span>
+        <span class="size-2.5 rounded-full bg-[#febc2e]"></span>
+        <span class="size-2.5 rounded-full bg-[#28c840]"></span>
+      </div>
+
       <div class="hero-panel" data-hero-panel="local">
-        <div class="px-4 py-7 font-mono text-[13px] leading-[1.7] text-code-text max-sm:text-[11.5px]">
+        <div class="px-4 pt-4 pb-5 font-mono text-[13px] leading-[1.7] text-code-text max-sm:text-[11.5px]">
           <div class="flex gap-2">
             <span class="text-[#10b981] select-none">$</span>
             <span><span class="text-[#7dd3fc]">slim</span> start web <span class="text-[#a78bfa]">--port</span> <span class="text-[#fbbf24]">3000</span></span>
@@ -66,7 +78,7 @@ const installCmd = 'curl -sL https://slim.sh/install.sh | sh';
       </div>
 
       <div class="hero-panel hidden" data-hero-panel="share">
-        <div class="px-4 py-7 font-mono text-[13px] leading-[1.7] text-code-text max-sm:text-[11.5px]">
+        <div class="px-4 pt-4 pb-5 font-mono text-[13px] leading-[1.7] text-code-text max-sm:text-[11.5px]">
           <div class="flex gap-2">
             <span class="text-[#10b981] select-none">$</span>
             <span><span class="text-[#7dd3fc]">slim</span> share <span class="text-[#a78bfa]">--port</span> <span class="text-[#fbbf24]">3000</span></span>
@@ -108,8 +120,8 @@ const installCmd = 'curl -sL https://slim.sh/install.sh | sh';
       </div>
     </div>
 
-    <div class="text-left">
-      <p class="text-[13px] font-medium text-text mt-6 mb-2">Install with one command</p>
+    <div class="text-left mt-7">
+      <p class="text-[13px] text-text font-medium mb-2">Install with one command</p>
       <div class="bg-code-bg rounded-lg px-4 py-2.5 flex items-center gap-3 overflow-x-auto">
         <code class="font-mono text-[12.5px] text-[#a3a3a3] whitespace-nowrap flex-1">
           <span class="text-[#10b981] mr-1.5">$</span> <span class="text-[#7dd3fc]">curl</span> <span class="text-[#a78bfa]">-sL</span> <span class="text-[#34d399]">https://slim.sh/install.sh</span> | <span class="text-[#7dd3fc]">sh</span>
