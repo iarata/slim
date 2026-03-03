@@ -19,7 +19,7 @@ import (
 
 var sharePort int
 var shareName string
-var sharePassword bool
+var sharePassword string
 var shareTTL time.Duration
 
 var shareCmd = &cobra.Command{
@@ -30,6 +30,7 @@ var shareCmd = &cobra.Command{
   slim share --port 3000
   slim share --port 3000 --subdomain cool
   slim share --port 3000 --password
+  slim share --port 3000 --password secret
   slim share --port 3000 --ttl 30m`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -52,12 +53,14 @@ var shareCmd = &cobra.Command{
 		subdomain := shareName
 
 		password := ""
-		if sharePassword {
+		if sharePassword == "auto" {
 			b := make([]byte, 16)
 			if _, err := rand.Read(b); err != nil {
 				return fmt.Errorf("generating password: %w", err)
 			}
 			password = hex.EncodeToString(b)[:16]
+		} else if sharePassword != "" {
+			password = sharePassword
 		}
 
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -89,7 +92,7 @@ var shareCmd = &cobra.Command{
 
 		fmt.Println()
 		fmt.Printf("  %s → localhost:%d\n", url, port)
-		if sharePassword {
+		if password != "" {
 			fmt.Printf("  Password: %s\n", password)
 		}
 		fmt.Printf("\n  Press Ctrl+C to disconnect\n\n")
@@ -104,7 +107,8 @@ func init() {
 	shareCmd.Flags().IntVarP(&sharePort, "port", "p", 0, "Local port to expose")
 	_ = shareCmd.MarkFlagRequired("port")
 	shareCmd.Flags().StringVar(&shareName, "subdomain", "", "Vanity subdomain name")
-	shareCmd.Flags().BoolVar(&sharePassword, "password", false, "Require password (auto-generated)")
+	shareCmd.Flags().StringVar(&sharePassword, "password", "", "Require password (omit value to auto-generate)")
+	shareCmd.Flags().Lookup("password").NoOptDefVal = "auto"
 	shareCmd.Flags().DurationVar(&shareTTL, "ttl", 1*time.Hour, "Tunnel time-to-live (max 1h)")
 	rootCmd.AddCommand(shareCmd)
 }
