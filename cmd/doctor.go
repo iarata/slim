@@ -27,7 +27,7 @@ var doctorCmd = &cobra.Command{
 func printReport(report doctor.Report) {
 	for _, r := range report.Results {
 		icon := statusIcon(r.Status)
-		fmt.Printf("  %s  %-22s %s\n", icon, r.Name, r.Message)
+		fmt.Printf("%s  %-22s %s\n", icon, r.Name, r.Message)
 	}
 }
 

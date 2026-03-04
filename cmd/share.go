@@ -67,7 +67,7 @@ var shareCmd = &cobra.Command{
 			TTL:       shareTTL,
 			OnRequest: func(e tunnel.RequestEvent) {
 				statusStyle := term.StyleForStatus(e.Status)
-				fmt.Printf("  %s  %-4s %s  %s  %s\n",
+				fmt.Printf("%s  %-4s %s  %s  %s\n",
 					term.Dim.Render(time.Now().Format("15:04:05")),
 					e.Method,
 					e.Path,
@@ -86,14 +86,14 @@ var shareCmd = &cobra.Command{
 		target := term.Dim.Render(fmt.Sprintf("localhost:%d", port))
 
 		fmt.Println()
-		fmt.Printf("  %s %s  %s  %s\n", term.CheckMark, term.Green.Render(url), arrow, target)
+		fmt.Printf("%s %s  %s  %s\n", term.CheckMark, term.Green.Render(url), arrow, target)
 		if domainURL := client.DomainURL(); domainURL != "" {
-			fmt.Printf("  %s %s  %s  %s\n", term.CheckMark, term.Green.Render(domainURL), arrow, target)
+			fmt.Printf("%s %s  %s  %s\n", term.CheckMark, term.Green.Render(domainURL), arrow, target)
 		}
 		if password != "" {
-			fmt.Printf("  Password: %s\n", password)
+			fmt.Printf("Password: %s\n", password)
 		}
-		fmt.Printf("\n  Press Ctrl+C to disconnect\n\n")
+		fmt.Printf("\nPress Ctrl+C to disconnect\n\n")
 
 		<-ctx.Done()
 		fmt.Println("\nDisconnected.")

@@ -46,7 +46,7 @@ func Execute() error {
 	rootCmd.SilenceErrors = true
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "\n  %s %s\n\n", term.Red.Render("Error:"), err)
+		fmt.Fprintf(os.Stderr, "\n%s %s\n", term.Red.Render("Error:"), err)
 		return err
 	}
 
@@ -82,11 +82,11 @@ func printServices(domains []config.Domain) {
 
 	for _, d := range domains {
 		url := fmt.Sprintf("https://%s.local", d.Name)
-		fmt.Printf("  %s %s  %s  %s\n",
+		fmt.Printf("%s %s  %s  %s\n",
 			term.CheckMark, term.Green.Render(fmt.Sprintf("%-*s", maxLen, url)),
 			arrow, term.Dim.Render(fmt.Sprintf("localhost:%d", d.Port)))
 		for _, r := range d.Routes {
-			fmt.Printf("    %s  %s  %s\n",
+			fmt.Printf("  %s  %s  %s\n",
 				term.Green.Render(fmt.Sprintf("%-*s", maxLen, url+r.Path)),
 				arrow, term.Dim.Render(fmt.Sprintf("localhost:%d", r.Port)))
 		}

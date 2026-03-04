@@ -24,16 +24,16 @@ func RunSteps(steps []Step) error {
 
 func runStep(s Step) error {
 	if s.Interactive {
-		fmt.Println(Dim.Render("  · " + s.Name))
+		fmt.Println(Dim.Render("· " + s.Name))
 		result, err := s.Run()
 		if err != nil {
-			fmt.Printf("  %s %s\n", CrossMark, s.Name)
+			fmt.Printf("%s %s\n", CrossMark, s.Name)
 			return err
 		}
 		if strings.HasPrefix(result, "skipped") {
-			fmt.Printf("  %s %s (%s)\n", WarnMark, s.Name, result)
+			fmt.Printf("%s %s (%s)\n", WarnMark, s.Name, result)
 		} else {
-			fmt.Printf("  %s %s\n", CheckMark, s.Name)
+			fmt.Printf("%s %s\n", CheckMark, s.Name)
 		}
 		return nil
 	}
@@ -41,7 +41,7 @@ func runStep(s Step) error {
 	var result string
 	var runErr error
 	err := spinner.New().
-		Title("  " + s.Name).
+		Title(s.Name).
 		Action(func() {
 			result, runErr = s.Run()
 		}).
@@ -50,14 +50,14 @@ func runStep(s Step) error {
 		return err
 	}
 	if runErr != nil {
-		fmt.Printf("  %s %s\n", CrossMark, s.Name)
+		fmt.Printf("%s %s\n", CrossMark, s.Name)
 		return runErr
 	}
 
 	if strings.HasPrefix(result, "skipped") {
-		fmt.Printf("  %s %s (%s)\n", WarnMark, s.Name, result)
+		fmt.Printf("%s %s (%s)\n", WarnMark, s.Name, result)
 	} else {
-		fmt.Printf("  %s %s\n", CheckMark, s.Name)
+		fmt.Printf("%s %s\n", CheckMark, s.Name)
 	}
 	return nil
 }

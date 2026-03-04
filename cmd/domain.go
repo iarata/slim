@@ -45,7 +45,6 @@ var domainAddCmd = &cobra.Command{
 		}
 
 		var targetIP string
-		fmt.Println()
 		err = term.RunSteps([]term.Step{
 			{
 				Name: fmt.Sprintf("Adding domain %s", domain),
@@ -94,13 +93,13 @@ var domainAddCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("\n  Add the following DNS record to verify ownership:\n\n")
-		fmt.Printf("    Type:  %s\n", term.Bold.Render("A"))
-		fmt.Printf("    Name:  %s\n", term.Bold.Render(domain))
-		fmt.Printf("    Value: %s\n\n", term.Bold.Render(targetIP))
-		fmt.Printf("  %s If using Cloudflare, disable the proxy (grey cloud / DNS only).\n", term.Dim.Render("*"))
-		fmt.Printf("  %s DNS changes can take a few minutes to propagate.\n\n", term.Dim.Render("*"))
-		fmt.Printf("  Then run: %s\n\n", term.Cyan.Render("slim domain verify "+domain))
+		fmt.Printf("\nAdd the following DNS record to verify ownership:\n\n")
+		fmt.Printf("  Type:  %s\n", term.Bold.Render("A"))
+		fmt.Printf("  Name:  %s\n", term.Bold.Render(domain))
+		fmt.Printf("  Value: %s\n\n", term.Bold.Render(targetIP))
+		fmt.Printf("%s If using Cloudflare, disable the proxy (grey cloud / DNS only).\n", term.Dim.Render("*"))
+		fmt.Printf("%s DNS changes can take a few minutes to propagate.\n\n", term.Dim.Render("*"))
+		fmt.Printf("Then run: %s\n", term.Cyan.Render("slim domain verify "+domain))
 
 		return nil
 	},
@@ -117,7 +116,6 @@ var domainListCmd = &cobra.Command{
 		}
 
 		var domains []domainEntry
-		fmt.Println()
 		err = term.RunSteps([]term.Step{
 			{
 				Name: "Fetching domains",
@@ -135,9 +133,11 @@ var domainListCmd = &cobra.Command{
 		}
 
 		if len(domains) == 0 {
-			fmt.Println("\n  No custom domains. Use 'slim domain add <domain>' to add one.")
+			fmt.Println("No custom domains. Use 'slim domain add <domain>' to add one.")
 			return nil
 		}
+
+		fmt.Println()
 
 		var rows [][]string
 		for _, d := range domains {
@@ -186,22 +186,7 @@ var domainVerifyCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println()
 		return term.RunSteps([]term.Step{
-			{
-				Name: "Looking up domain",
-				Run: func() (string, error) {
-					domains, err := fetchDomains(info.Token)
-					if err != nil {
-						return "", err
-					}
-					domainID := findDomainID(domains, domain)
-					if domainID == "" {
-						return "", fmt.Errorf("domain %s not found — use 'slim domain add' first", domain)
-					}
-					return domainID, nil
-				},
-			},
 			{
 				Name: fmt.Sprintf("Verifying DNS for %s", domain),
 				Run: func() (string, error) {
@@ -211,7 +196,7 @@ var domainVerifyCmd = &cobra.Command{
 					}
 					domainID := findDomainID(domains, domain)
 					if domainID == "" {
-						return "", fmt.Errorf("domain %s not found", domain)
+						return "", fmt.Errorf("domain %s not found — use 'slim domain add' first", domain)
 					}
 
 					client := &http.Client{Timeout: 10 * time.Second}
@@ -255,63 +240,69 @@ var domainRemoveCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println()
-		return term.RunSteps([]term.Step{
-			{
-				Name: fmt.Sprintf("Removing domain %s", domain),
-				Run: func() (string, error) {
-					domains, err := fetchDomains(info.Token)
-					if err != nil {
-						return "", err
-					}
+		domains, err := fetchDomains(info.Token)
+		if err != nil {
+			return err
+		}
 
-					domainID := findDomainID(domains, domain)
-					if domainID == "" {
-						return "", fmt.Errorf("domain %s not found", domain)
-					}
+		domainID := findDomainID(domains, domain)
+		if domainID == "" {
+			return fmt.Errorf("domain %s not found", domain)
+		}
 
-					deleteURL := fmt.Sprintf("%s/api/domains/%s", config.APIBaseURL(), domainID)
+		deleteURL := fmt.Sprintf("%s/api/domains/%s", config.APIBaseURL(), domainID)
 
-					client := &http.Client{Timeout: 10 * time.Second}
-					req, err := http.NewRequest("DELETE", deleteURL, nil)
-					if err != nil {
-						return "", fmt.Errorf("creating request: %w", err)
-					}
-					req.Header.Set("Authorization", "Bearer "+info.Token)
+		client := &http.Client{Timeout: 10 * time.Second}
+		req, err := http.NewRequest("DELETE", deleteURL, nil)
+		if err != nil {
+			return fmt.Errorf("creating request: %w", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+info.Token)
 
-					resp, err := client.Do(req)
-					if err != nil {
-						return "", fmt.Errorf("removing domain: %w", err)
-					}
-					resp.Body.Close()
+		resp, err := client.Do(req)
+		if err != nil {
+			return fmt.Errorf("removing domain: %w", err)
+		}
+		resp.Body.Close()
 
-					if resp.StatusCode == http.StatusConflict {
-						fmt.Printf("\n  %s has an active tunnel. Removing it will disconnect the tunnel.\n", term.Bold.Render(domain))
-						if !term.ConfirmPrompt("  Continue?") {
-							return "", fmt.Errorf("cancelled")
-						}
+		if resp.StatusCode == http.StatusConflict {
+			fmt.Printf("\n%s has an active tunnel. Removing it will disconnect the tunnel.\n", term.Bold.Render(domain))
+			if !term.ConfirmPrompt("Continue?") {
+				return nil
+			}
 
-						req, err = http.NewRequest("DELETE", deleteURL+"?force=true", nil)
+			return term.RunSteps([]term.Step{
+				{
+					Name: fmt.Sprintf("Removing domain %s", domain),
+					Run: func() (string, error) {
+						req, err := http.NewRequest("DELETE", deleteURL+"?force=true", nil)
 						if err != nil {
 							return "", fmt.Errorf("creating request: %w", err)
 						}
 						req.Header.Set("Authorization", "Bearer "+info.Token)
 
-						resp, err = client.Do(req)
+						resp, err := client.Do(req)
 						if err != nil {
 							return "", fmt.Errorf("removing domain: %w", err)
 						}
 						defer resp.Body.Close()
-					}
 
-					if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-						return "", apiError(resp, "failed to remove domain")
-					}
+						if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+							return "", apiError(resp, "failed to remove domain")
+						}
 
-					return "done", nil
+						return "done", nil
+					},
 				},
-			},
-		})
+			})
+		}
+
+		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+			return apiError(resp, "failed to remove domain")
+		}
+
+		fmt.Printf("\n%s Removed %s\n", term.CheckMark, domain)
+		return nil
 	},
 }
 
