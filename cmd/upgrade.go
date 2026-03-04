@@ -19,8 +19,9 @@ import (
 )
 
 var upgradeCmd = &cobra.Command{
-	Use:   "upgrade",
-	Short: "Upgrade slim to the latest version",
+	Use:     "upgrade",
+	Aliases: []string{"update"},
+	Short:   "Upgrade slim to the latest version",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repo := "kamranahmedse/slim"
