@@ -13,9 +13,11 @@ import plexSerifUrl from '@fontsource/ibm-plex-serif/files/ibm-plex-serif-latin-
 
 const props = Astro.props;
 const {
-  title = 'Slim - Local development toolkit',
-  description = 'Pretty .test domains with HTTPS, public URL sharing via slim.show, and project config. WebSocket support, path routing, and zero config.',
+  title = 'Slim - Local HTTPS Domains, Tunnels & Dev Environment Toolkit',
+  description = 'Slim maps localhost to pretty .test domains with automatic HTTPS, SSL certificates, WebSocket & HMR support, path routing, and public URL tunnels via slim.show. Free, open-source, zero-config CLI built with Go for macOS and Linux.',
 } = props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
 ---
 
 <!doctype html>
@@ -28,13 +30,23 @@ const {
     <link rel="preload" href={plexSerifUrl} as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="keywords" content="local https, localhost https, local domains, .test domains, ssl localhost, dev environment, localhost tunnel, share localhost, public url, ngrok alternative, local development, reverse proxy, websocket proxy, hmr proxy, path routing, dev toolkit, slim cli, slim.sh, macOS development, linux development" />
+    <link rel="canonical" href={canonicalUrl} />
+
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://slim.sh/" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={new URL('/og-img.png', Astro.site).href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Slim" />
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL('/og-img.png', Astro.site).href} />
+
     <link rel="icon" href="/favicon.png" type="image/png" />
   </head>
   <body>
