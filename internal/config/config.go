@@ -11,7 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var validName = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`)
+var validLabel = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`)
 
 const (
 	LogModeFull    = "full"
@@ -64,11 +64,16 @@ func ValidateDomain(name string, port int) error {
 	if name == "" {
 		return fmt.Errorf("domain name cannot be empty")
 	}
-	if len(name) > 63 {
-		return fmt.Errorf("domain name %q is too long: must be 63 characters or fewer", name)
+	if len(name) > 253 {
+		return fmt.Errorf("domain name %q is too long: must be 253 characters or fewer", name)
 	}
-	if !validName.MatchString(name) {
-		return fmt.Errorf("invalid domain name %q: must be lowercase alphanumeric with hyphens", name)
+	for _, label := range strings.Split(name, ".") {
+		if len(label) > 63 {
+			return fmt.Errorf("domain label %q is too long: must be 63 characters or fewer", label)
+		}
+		if !validLabel.MatchString(label) {
+			return fmt.Errorf("invalid domain name %q: labels must be lowercase alphanumeric with hyphens", name)
+		}
 	}
 	if port < 1 || port > 65535 {
 		return fmt.Errorf("invalid port %d: must be between 1 and 65535", port)
