@@ -4,11 +4,9 @@ package system
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/kamranahmedse/slim/internal/config"
 )
@@ -136,18 +134,12 @@ func (d *darwinPortFwd) IsEnabled() bool {
 }
 
 func (d *darwinPortFwd) IsLoaded() bool {
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", config.ProxyHTTPSPort), 1*time.Second)
+	output, err := exec.Command("sudo", "pfctl", "-a", anchorName, "-s", "nat").CombinedOutput()
 	if err != nil {
 		return false
 	}
-	conn.Close()
-
-	conn, err = net.DialTimeout("tcp", "127.0.0.1:443", 1*time.Second)
-	if err != nil {
-		return false
-	}
-	conn.Close()
-	return true
+	out := strings.TrimSpace(string(output))
+	return strings.Contains(out, "rdr pass") && strings.Contains(out, "port = 443")
 }
 
 func isPFAlreadyEnabledOutput(out string) bool {

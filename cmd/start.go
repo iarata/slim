@@ -75,15 +75,16 @@ Runs first-time setup automatically if needed.
 			return fmt.Errorf("generating certificate: %w", err)
 		}
 
-		if !daemon.IsRunning() {
-			if !daemon.IsChild() {
-				pf := system.NewPortForwarder()
-				if pf.IsEnabled() {
-					if err := pf.EnsureLoaded(); err != nil {
-						return fmt.Errorf("loading port forwarding rules: %w", err)
-					}
+		if !daemon.IsChild() {
+			pf := system.NewPortForwarder()
+			if pf.IsEnabled() && !pf.IsLoaded() {
+				if err := pf.EnsureLoaded(); err != nil {
+					return fmt.Errorf("loading port forwarding rules: %w", err)
 				}
 			}
+		}
+
+		if !daemon.IsRunning() {
 			if err := setup.EnsureProxyPortsAvailable(); err != nil {
 				return err
 			}

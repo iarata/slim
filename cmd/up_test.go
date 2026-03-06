@@ -104,6 +104,7 @@ func TestUpReloadsDaemonWhenRunning(t *testing.T) {
 	upEnsureFirstRunFn = func() error { return nil }
 	upAddHostFn = func(string) error { return nil }
 	upEnsureLeafCertFn = func(string) error { return nil }
+	upDaemonIsChildFn = func() bool { return true }
 	upDaemonIsRunningFn = func() bool { return true }
 
 	var gotType daemon.MessageType
