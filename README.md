@@ -141,20 +141,11 @@ $ slim doctor
 
 ## Uninstall
 
+> Remove everything: CA, certs, hosts entries, port-forward rules, config
+
 ```bash
-slim uninstall   # removes everything: CA, certs, hosts entries, port-forward rules, config
+slim uninstall
 ```
-
-## How It Works
-
-- **Creates a local CA** — generated on first use and trusted in the system store (macOS Keychain or Linux CA store).
-- **Issues per-domain certificates** — on the fly, signed by the CA and served via SNI.
-- **Updates `/etc/hosts`** — automatically points your domains to `127.0.0.1`.
-- **Forwards ports 80/443** — macOS `pfctl` or Linux `iptables` redirects to unprivileged 10080/10443 so the proxy doesn't need root.
-- **Reverse proxies requests** — Go's `httputil.ReverseProxy` handles HTTP/2 and WebSocket upgrades natively, so HMR for Next.js, Vite, etc. works out of the box.
-- **Tunnels to the internet** — `slim share` creates a WebSocket tunnel to `slim.show`, giving your local server a public HTTPS URL.
-
-Config lives at `~/.slim/config.yaml`. Certificates in `~/.slim/certs/`, root CA in `~/.slim/ca/`, logs in `~/.slim/access.log`.
 
 ## License
 
