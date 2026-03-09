@@ -27,7 +27,8 @@ app.loc           → localhost:4000
 curl -sL https://slim.sh/install.sh | sh
 ```
 
-Or build from source:
+<details>
+<summary>Build from source</summary>
 
 ```bash
 git clone https://github.com/kamranahmedse/slim.git
@@ -36,86 +37,41 @@ make build
 make install
 ```
 
-Requires Go 1.25 or later to build from source.
+Requires Go 1.25 or later.
+</details>
 
 ## Quick Start
 
 ```bash
-# Start your dev server, then:
 slim start myapp --port 3000
-
-# That's it. Open https://myapp.test
-
-# Or use any TLD you like
-slim start app.loc --port 4000
-```
-
-Or define all services in a `.slim.yaml` project config and start them at once:
-
-```bash
-slim up
+# https://myapp.test → localhost:3000
 ```
 
 First run handles all setup automatically (CA generation, keychain trust, port forwarding).
 
 ## Usage
 
+### Starting and Stopping
+
 ```bash
-# Start proxying domains
 slim start myapp --port 3000
 slim start api --port 8080
-
-# Use a custom TLD
-slim start app.loc --port 4000
-
-# Route different paths to different upstream ports
-slim start myapp --port 3000 --route /api=8080 --route /ws=9000
-
-# Start all services from .slim.yaml
-slim up
-slim up --config /path/to/.slim.yaml
-
-# Optional start flags
-# Access logs: full | minimal | off
-slim start myapp --port 3000 --log-mode minimal
-
-# Enable CORS headers
-slim start myapp --port 3000 --cors
-
-# Wait for upstream readiness before returning
-slim start myapp --port 3000 --wait --timeout 30s
-
-# Inspect running domains
-slim list
-slim list --json
-
-# Access logs with or without tail
-slim logs
-slim logs --follow myapp
-slim logs --flush
-
-# Run diagnostic checks
-slim doctor
-
-# Share your local server over the internet
-slim share --port 3000
-slim share --port 3000 --subdomain demo
-slim share --port 3000 --password secret --ttl 30m
-slim share --port 3000 --domain myapp.example.com
-
-# Stop proxying one or all
-slim stop myapp
-slim stop
-
-# Stop all project services from .slim.yaml
-slim down
-slim down --config /path/to/.slim.yaml
-
-# Version
-slim version
+slim stop myapp                  # stop one domain
+slim stop                        # stop all domains
 ```
 
-### Path-based Routing
+### Custom TLDs
+
+Bare names like `myapp` get `.test` appended automatically. Specify a full domain to use any TLD:
+
+```bash
+slim start app.loc --port 3000   # https://app.loc → localhost:3000
+slim start my.dev --port 4000    # https://my.dev → localhost:4000
+```
+
+> **Note:** Avoid `.local` — it's reserved for mDNS and can cause slow DNS resolution on macOS/Linux.
+
+### Path Routing
 
 Route different URL paths to different upstream ports on a single domain:
 
@@ -124,18 +80,6 @@ slim start myapp --port 3000 --route /api=8080 --route /ws=9000
 ```
 
 Routes use longest-prefix matching — `/api/users` matches `/api` before `/`. The `--port` flag sets the default upstream for unmatched paths.
-
-### Custom TLDs
-
-By default, bare names like `myapp` get `.test` appended automatically. You can also use any TLD you want by specifying the full domain:
-
-```bash
-slim start app.loc --port 3000      # https://app.loc → localhost:3000
-slim start my.dev --port 4000       # https://my.dev → localhost:4000
-slim start a.b.c --port 5000        # https://a.b.c → localhost:5000
-```
-
-> **Note:** Avoid `.local` — it's reserved for mDNS and can cause slow DNS resolution on macOS/Linux.
 
 ### Project Config (`.slim.yaml`)
 
@@ -152,27 +96,14 @@ services:
     port: 5173
   - domain: app.loc
     port: 4000
-log_mode: minimal
+log_mode: minimal  # full | minimal | off
+cors: true         # enable CORS headers on proxied responses
 ```
 
 ```bash
-slim up                              # start all services from .slim.yaml
-slim up --config /path/to/.slim.yaml # or specify a config path
+slim up                              # start all services
+slim up --config /path/to/.slim.yaml # specify a config path
 slim down                            # stop all project services
-```
-
-### Doctor
-
-Run diagnostic checks to verify your setup:
-
-```
-$ slim doctor
-  ✓  CA certificate        valid, expires 2035-02-28
-  ✓  CA trust              trusted by OS
-  ✓  Port forwarding       active (80→10080, 443→10443)
-  ✓  Hosts: myapp.test    present in /etc/hosts
-  !  Daemon                not running
-  ✓  Cert: myapp.test     valid, expires 2027-06-03
 ```
 
 ### Internet Sharing
@@ -189,6 +120,29 @@ slim share --port 3000 --domain myapp.example.com   # custom domain
 
 Custom subdomains, custom domains, and password protection require a Pro subscription.
 
+### Logs and Diagnostics
+
+```bash
+slim list                # inspect running domains
+slim list --json
+
+slim logs                # view access logs
+slim logs --follow myapp # tail logs for a domain
+slim logs --flush        # clear log file
+
+slim doctor              # run diagnostic checks
+```
+
+```
+$ slim doctor
+  ✓  CA certificate        valid, expires 2035-02-28
+  ✓  CA trust              trusted by OS
+  ✓  Port forwarding       active (80→10080, 443→10443)
+  ✓  Hosts: myapp.test    present in /etc/hosts
+  !  Daemon                not running
+  ✓  Cert: myapp.test     valid, expires 2027-06-03
+```
+
 ### Uninstall
 
 ```bash
@@ -197,34 +151,14 @@ slim uninstall   # removes everything: CA, certs, hosts entries, port-forward ru
 
 ## How It Works
 
-- **HTTPS**: A root CA is generated on first use and trusted in the system trust store (macOS Keychain or Linux CA store). Per-domain leaf certificates are created on demand and served via SNI.
-- **Reverse proxy**: Go's `httputil.ReverseProxy` handles HTTP/2 and WebSocket upgrades natively — HMR for Next.js, Vite, etc. works out of the box.
-- **Local resolution**: `/etc/hosts` entries are managed automatically.
-- **Port forwarding**: macOS `pfctl` or Linux `iptables` redirects ports 80/443 to unprivileged 10080/10443 so the proxy doesn't need root.
-- **Daemon**: The proxy runs in the background. `start` launches it automatically, `stop` shuts it down.
-- **Sharing**: `slim share` creates a WebSocket tunnel to `slim.show`, giving your local server a public HTTPS URL with optional password protection and TTL.
-
-## Configuration
+1. **Creates a local CA** — generated on first use and trusted in the system store (macOS Keychain or Linux CA store).
+2. **Issues per-domain certificates** — on the fly, signed by the CA and served via SNI.
+3. **Updates `/etc/hosts`** — automatically points your domains to `127.0.0.1`.
+4. **Forwards ports 80/443** — macOS `pfctl` or Linux `iptables` redirects to unprivileged 10080/10443 so the proxy doesn't need root.
+5. **Reverse proxies requests** — Go's `httputil.ReverseProxy` handles HTTP/2 and WebSocket upgrades natively, so HMR for Next.js, Vite, etc. works out of the box.
+6. **Tunnels to the internet** — `slim share` creates a WebSocket tunnel to `slim.show`, giving your local server a public HTTPS URL.
 
 Config lives at `~/.slim/config.yaml`. Certificates in `~/.slim/certs/`, root CA in `~/.slim/ca/`, logs in `~/.slim/access.log`.
-
-### CORS
-
-If you need Slim to handle CORS headers, add `cors: true` to your `.slim.yaml`:
-
-```yaml
-cors: true
-```
-
-### Access Logging
-
-Set access logging mode globally (persisted in config) with:
-
-```bash
-slim start myapp --port 3000 --log-mode full     # default
-slim start myapp --port 3000 --log-mode minimal
-slim start myapp --port 3000 --log-mode off
-```
 
 ## License
 
